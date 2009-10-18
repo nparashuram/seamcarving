@@ -1,1 +1,31 @@
-My GitHub Page
+
+<html>
+    <head>
+        <title>Seam Carving using Javascript</title>
+    </head>
+    <body>
+        <center>
+            <h3>An implementation of seam carving using Javascript</h3>
+            Please note that this may not work on Internet Explorer
+        </center>
+        <hr/>
+        <div style ="float : left; margin : 1%">
+            <h4>Original Image</h4>
+            <img id = "demoImage" src="ball.jpg" id="img" style="vertical-align: top;"/>
+        </div>
+        <div style ="float : left; margin : 1%">
+            <h4>Changing Image via Canvas</h4>
+            <canvas id = "demoCanvas" width="400" height="300" style="border:1px SOLID BLUE">
+            </canvas>
+        </div>
+        <div style ="clear:both;padding : 1em;">
+            <a style ="background-color : #CCCCCC; color : #000000; padding : 1em;" href = "javascript:SeamUtil.reduceWidth(5)">Reduce width by 10   pixels</a>
+        </div>
+    </body>
+    <script type="text/javascript" src="ImageResizer.js">
+    </script>
+    <script type="text/javascript" src="SeamUtil.js">
+    </script>
+    <script type="text/javascript" src="ServerResizer.js">
+    </script>
+</html>
