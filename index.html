@@ -1,31 +1,91 @@
-
 <html>
     <head>
-        <title>Seam Carving using Javascript</title>
+        <title>Seam Carving: Javascript Canvas</title>
+        <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/themes/base/jquery-ui.css" type="text/css" media="all" />
+        <link rel="stylesheet" href="http://static.jquery.com/ui/css/demo-docs-theme/ui.theme.css" type="text/css" media="all" />
     </head>
+    <style>
+        
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            padding: 0;
+            margin: auto;
+            width: 90%;
+            background-color: WHITE;
+        }
+        
+        #resizer {
+            border: SOLID 2px RED;
+			border-right : DOTTED 5px ORANGE;
+            text-align: left;
+            position: absolute;
+            padding: 0;
+            margin: 0;
+        }
+        
+        #source img {
+            float: left;
+            padding: 1em;
+            height: 200px;
+            cursor: pointer;
+        }
+        
+        #canvas {
+            border: SOLID 1px GRAY;
+        }
+        
+        #source img:hover {
+        }
+    </style>
     <body>
-        <center>
-            <h3>An implementation of seam carving using Javascript</h3>
-            Please note that this may not work on Internet Explorer
-        </center>
-        <hr/>
-        <div style ="float : left; margin : 1%">
-            <h4>Original Image</h4>
-            <img id = "demoImage" src="ball.jpg" id="img" style="vertical-align: top;"/>
+        <h1 style ="text-align:center">Seam Carving using Javascript</h1>
+        <img id = "source" src = "ball.jpg"/>
+        <div style ="clear:both;border-bottom : BLACK 3px DOTTED; margin : 10px; height : 1px; width : 100%;">
         </div>
-        <div style ="float : left; margin : 1%">
-            <h4>Changing Image via Canvas</h4>
-            <canvas id = "demoCanvas" width="400" height="300" style="border:1px SOLID BLUE">
-            </canvas>
-        </div>
-        <div style ="clear:both;padding : 1em;">
-            <a style ="background-color : #CCCCCC; color : #000000; padding : 1em;" href = "javascript:SeamUtil.reduceWidth(5)">Reduce width by 10   pixels</a>
+        <canvas id = "canvas">
+        </canvas>
+        <div id = "resizer" style ="overflow:hidden">
         </div>
     </body>
-    <script type="text/javascript" src="ImageResizer.js">
+    <script src = "https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type = "text/javascript">
     </script>
-    <script type="text/javascript" src="SeamUtil.js">
+    <script src = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js" type = "text/javascript">
     </script>
-    <script type="text/javascript" src="ServerResizer.js">
+    <script type="text/javascript" src="seamJSON.js">
+    </script>
+    <script type="text/javascript" src="SeamCarver.js">
+    </script>
+    <script type="text/javascript">
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+        var img = new Image();
+        var imageData = null;
+        img.src = $("#source").attr("src");
+        img.onload = function(){
+            canvas.height = img.height;
+            canvas.width = img.width;
+            ctx.drawImage(img, 0, 0);
+            $("#resizer").css({
+                "top": $("#canvas").position().top,
+                "height": img.height,
+                "width": img.width
+            });
+            imageData = ctx.getImageData(0, 0, img.width, img.height);
+            $("#resizer").resizable({
+                "stop": function(){
+                    SeamCarver(imageData, {
+                        "height": $("#resizer").height(),
+                        "width": $("#resizer").width()
+                    }, function(imgData){
+                        ctx.putImageData(imgData, 0, 0);
+                    });
+                },
+                "minHeight": imageData.height,
+                "maxHeight": imageData.height,
+                "minWidth": 100,
+                "maxWidth": imageData.width
+            });
+        }
     </script>
 </html>
