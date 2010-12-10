@@ -17,7 +17,7 @@
         
         #resizer {
             border: SOLID 2px RED;
-			border-right : DOTTED 5px ORANGE;
+            border-right: DOTTED 5px ORANGE;
             text-align: left;
             position: absolute;
             padding: 0;
@@ -47,45 +47,86 @@
         </canvas>
         <div id = "resizer" style ="overflow:hidden">
         </div>
+        <marquee>
+            This UI element keeps moving. If this stops, your UI is frozen
+        </marquee>
     </body>
     <script src = "https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type = "text/javascript">
     </script>
     <script src = "https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js" type = "text/javascript">
     </script>
-    <script type="text/javascript" src="seamJSON.js">
+    <script src = "seamJSON.js" type = "text/javascript">
     </script>
-    <script type="text/javascript" src="SeamCarver.js">
+    <script src = "SeamCarver.js" type = "text/javascript">
     </script>
     <script type="text/javascript">
-        var canvas = document.getElementById("canvas");
-        var ctx = canvas.getContext("2d");
-        var img = new Image();
-        var imageData = null;
-        img.src = $("#source").attr("src");
-        img.onload = function(){
-            canvas.height = img.height;
-            canvas.width = img.width;
-            ctx.drawImage(img, 0, 0);
-            $("#resizer").css({
-                "top": $("#canvas").position().top,
-                "height": img.height,
-                "width": img.width
-            });
-            imageData = ctx.getImageData(0, 0, img.width, img.height);
-            $("#resizer").resizable({
-                "stop": function(){
-                    SeamCarver(imageData, {
-                        "height": $("#resizer").height(),
-                        "width": $("#resizer").width()
-                    }, function(imgData){
-                        ctx.putImageData(imgData, 0, 0);
-                    });
-                },
-                "minHeight": imageData.height,
-                "maxHeight": imageData.height,
-                "minWidth": 100,
-                "maxWidth": imageData.width
-            });
-        }
+        (function(){
+            var canvas = document.getElementById("canvas");
+            try {
+                var ctx = canvas.getContext("2d");
+            } 
+            catch (e) {
+                alert("Your browser does not support the canvas element");
+                return;
+            }
+            
+            var img = new Image();
+            var imageData = null;
+            img.src = $("#source").attr("src");
+            img.onload = function(){
+                canvas.height = img.height;
+                canvas.width = img.width;
+                ctx.drawImage(img, 0, 0);
+                $("#resizer").css({
+                    "top": $("#canvas").position().top,
+                    "height": img.height,
+                    "width": img.width
+                });
+                imageData = ctx.getImageData(0, 0, img.width, img.height);
+                
+                var worker = new Worker("SeamCarver.js");
+                worker.addEventListener("message", function(e){
+                    newImage = ctx.createImageData(e.data.width, e.data.height);
+                    for (var i = 0; i < e.data.data.length; i++) {
+                        newImage.data[i] = e.data.data[i];
+                    }
+                    ctx.putImageData(newImage, 0, 0);
+                }, false);
+                
+                $("#resizer").resizable({
+                    "stop": function(){
+                        /*SeamCarver({
+                            "width": imageData.width,
+                            "height": imageData.height,
+                            "data": imageData.data
+                        }, {
+                            "height": $("#resizer").height(),
+                            "width": $("#resizer").width()
+                        }, function(data){
+                            newImage = ctx.createImageData(data.width, data.height);
+                            for (var i = 0; i < data.data.length; i++) {
+                                newImage.data[i] = data.data[i];
+                            }
+                            ctx.putImageData(newImage, 0, 0);
+                        });*/
+                        worker.postMessage({
+                         "image": {
+                         "width": imageData.width,
+                         "height": imageData.height,
+                         "data": imageData.data
+                         },
+                         "adjust": {
+                         "height": $("#resizer").height(),
+                         "width": $("#resizer").width()
+                         }
+                         });
+                    },
+                    "minHeight": imageData.height,
+                    "maxHeight": imageData.height,
+                    "minWidth": 100,
+                    "maxWidth": imageData.width
+                });
+            }
+        })();
     </script>
 </html>
