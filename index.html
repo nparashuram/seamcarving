@@ -40,8 +40,10 @@
     </style>
     <body>
         <h1 style ="text-align:center">Seam Carving using Javascript</h1>
-        <img id = "source" src = "ball.jpg"/>
-        <div style ="clear:both;border-bottom : BLACK 3px DOTTED; margin : 10px; height : 1px; width : 100%;">
+        <div style ="clear:both;border-bottom : BLACK 3px DOTTED; margin : 10px; width : 100%;">
+            <img id = "source" src = "images/ball.jpg"/>
+        </div>
+        <div style ="clear:both">
         </div>
         <canvas id = "canvas">
         </canvas>
@@ -86,40 +88,34 @@
                 
                 var worker = new Worker("SeamCarver.js");
                 worker.addEventListener("message", function(e){
-                    newImage = ctx.createImageData(e.data.width, e.data.height);
-                    for (var i = 0; i < e.data.data.length; i++) {
-                        newImage.data[i] = e.data.data[i];
+                    switch (e.data.action) {
+                        case "done":
+                            newImage = ctx.createImageData(e.data.width, e.data.height);
+                            for (var i = 0; i < e.data.data.length; i++) {
+                                newImage.data[i] = e.data.data[i];
+                            }
+                            ctx.putImageData(newImage, 0, 0);
+                            break;
+                        default:
+                            console.log(e.data);
+                            break;
+                            
                     }
-                    ctx.putImageData(newImage, 0, 0);
                 }, false);
                 
                 $("#resizer").resizable({
                     "stop": function(){
-                        /*SeamCarver({
-                            "width": imageData.width,
-                            "height": imageData.height,
-                            "data": imageData.data
-                        }, {
-                            "height": $("#resizer").height(),
-                            "width": $("#resizer").width()
-                        }, function(data){
-                            newImage = ctx.createImageData(data.width, data.height);
-                            for (var i = 0; i < data.data.length; i++) {
-                                newImage.data[i] = data.data[i];
-                            }
-                            ctx.putImageData(newImage, 0, 0);
-                        });*/
                         worker.postMessage({
-                         "image": {
-                         "width": imageData.width,
-                         "height": imageData.height,
-                         "data": imageData.data
-                         },
-                         "adjust": {
-                         "height": $("#resizer").height(),
-                         "width": $("#resizer").width()
-                         }
-                         });
+                            "image": {
+                                "width": imageData.width,
+                                "height": imageData.height,
+                                "data": imageData.data
+                            },
+                            "adjust": {
+                                "height": $("#resizer").height(),
+                                "width": $("#resizer").width()
+                            }
+                        });
                     },
                     "minHeight": imageData.height,
                     "maxHeight": imageData.height,
