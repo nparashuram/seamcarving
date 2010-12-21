@@ -65,7 +65,7 @@ SeamCarver.prototype.copyImage = function(){
             this.putPixel(x, y, this.getPixel(x, y));
 }
 
-SeamCarver.prototype.getHeatMap = function(){
+SeamCarver.prototype.initHeatMap = function(){
     var me = this;
     var b = function(x, y){
         if (x < 0 || y < 0 || x >= me.image.width || y >= me.image.height) {
@@ -76,22 +76,27 @@ SeamCarver.prototype.getHeatMap = function(){
     }
     
     var heatMap = [];
+    var max = 0;
     for (var x = 0; x < this.image.width; x++) {
         heatMap[x] = [];
         for (var y = 0; y < this.image.height; y++) {
             var xenergy = b(x - 1, y - 1) + 2 * b(x - 1, y) + b(x - 1, y + 1) - b(x + 1, y - 1) - 2 * b(x + 1, y) - b(x + 1, y + 1)
             var yenergy = b(x - 1, y - 1) + 2 * b(x, y - 1) + b(x + 1, y - 1) - b(x - 1, y + 1) - 2 * b(x, y + 1) - b(x + 1, y + 1)
-            heatMap[x][y] = (xenergy * xenergy + yenergy * yenergy);
+            heatMap[x][y] = Math.sqrt(xenergy * xenergy + yenergy * yenergy);
+            max = (max > heatMap[x][y] ? max : heatMap[x][y]);
         }
     }
     log("HeatMap calculation complete");
-    return heatMap;
+    this.heatMap = heatMap;
+    this.maxHeat = max;
+    return this;
 }
 
 SeamCarver.prototype.initSeams = function(){
     log("Getting seams");
     var yseam = [];
-    var heatMap = this.getHeatMap();
+    this.heatMap || this.initHeatMap();
+    
     var ylen = this.image.height - 1;
     // initialize the last row of the seams
     for (var x = 0; x < this.image.width; x++) {
@@ -102,7 +107,7 @@ SeamCarver.prototype.initSeams = function(){
     // sort the last row of the seams
     for (var i = 0; i < yseam.length; i++) {
         for (var j = i + 1; j < yseam.length; j++) {
-            if (heatMap[yseam[i][ylen]][ylen] > heatMap[yseam[j][ylen]][ylen]) {
+            if (this.heatMap[yseam[i][ylen]][ylen] > this.heatMap[yseam[j][ylen]][ylen]) {
                 var tmp = yseam[j];
                 yseam[j] = yseam[i]
                 yseam[i] = tmp;
@@ -116,23 +121,23 @@ SeamCarver.prototype.initSeams = function(){
             var x1 = yseam[x][y + 1];
             var x0 = x1 - 1;
             while (x0 >= 0) {
-                if (!isNaN(heatMap[x0][y])) break;
+                if (!isNaN(this.heatMap[x0][y])) break;
                 x0--;
             }
             
             var x2 = x1 + 1;
             while (x2 < this.image.width) {
-                if (!isNaN(heatMap[x2][y])) break;
+                if (!isNaN(this.heatMap[x2][y])) break;
                 x2++;
             }
             
-            var hx0 = heatMap[x0] ? heatMap[x0][y] : Number.MAX_VALUE;
-            var hx1 = heatMap[x1][y] || Number.MAX_VALUE;
-            var hx2 = heatMap[x2] ? heatMap[x2][y] : Number.MAX_VALUE;
+            var hx0 = this.heatMap[x0] ? this.heatMap[x0][y] : Number.MAX_VALUE;
+            var hx1 = this.heatMap[x1][y] || Number.MAX_VALUE;
+            var hx2 = this.heatMap[x2] ? this.heatMap[x2][y] : Number.MAX_VALUE;
             
             // Choose the least energy
             yseam[x][y] = hx0 < hx1 ? (hx0 < hx2 ? x0 : x2) : (hx1 < hx2 ? x1 : x2);
-            heatMap[yseam[x][y]][y] = NaN;
+            this.heatMap[yseam[x][y]][y] = NaN;
         }
     }
     
@@ -141,17 +146,33 @@ SeamCarver.prototype.initSeams = function(){
     return this;
 }
 
-SeamCarver.prototype.getSeams = function(){
-    this.newImage = [];
+SeamCarver.prototype.getHeatMap = function(){
+    this.heatMap || this.initHeatMap();
     this.copyImage();
-    
-    var color = 0x000001;
-    var step = parseInt(0xFFFFFF / this.image.width);
-    for (var x = 0; x < this.seams.length; x += 10) {
+    for (var x = 0; x < this.image.width; x++) {
         for (var y = 0; y < this.image.height; y++) {
-            this.putPixel(this.seams[x][y], y, color);
+            var color = parseInt(this.heatMap[x][y] / this.maxHeat * 255);
+            this.putPixel(x, y, {
+                "red": 212,
+                "blue": 212,
+                "green": 212,
+                "alpha": 1
+            });
         }
-        color = (color - step < 0) ? 0xFFFFFF : color - step;
+    }
+    return this.newImage;
+}
+
+SeamCarver.prototype.getSeams = function(){
+    this.seams || this.initSeams();
+    this.copyImage();
+    var color = 255;
+    var step = 1;//parseInt(color / this.image.width);
+    for (var x = 0; x < this.seams.length; x++) {
+        for (var y = 0; y < this.image.height; y++) {
+            this.putPixel(this.seams[x][y], y, parseInt("0x" + color + color + color, 16));
+        }
+        color = (color - step < 0) ? 255 : color - step;
     }
     
     return this.newImage;
@@ -159,6 +180,7 @@ SeamCarver.prototype.getSeams = function(){
 
 SeamCarver.prototype.resize = function(dim){
     var image = this.image;
+    this.seams || this.initSeams();
     log("Starting resize Reduce");
     this.newImage = [];
     var widthDiff = image.width - dim.width;
