@@ -45,7 +45,7 @@
             <a href = "javascript:drawImage(seamCarver.initSeams().getSeams())">Show Seams</a>
             <a href = "javascript:drawImage(seamCarver.resize({width:300}))">Reduce</a>
         </div>
-        <img id = "source" src = "images/castle.png"/>
+        <img id = "source" src = "images/1.jpg"/>
         <canvas id = "canvas">
         </canvas>
         <marquee>
@@ -61,7 +61,11 @@
         var img = new Image();
         var imageData = null;
         img.src = document.getElementById("source").src;
-        var log = console.log;
+        var log = function(msg){
+            if (typeof console != "undefined") {
+                console.log(msg);
+            }
+        }
         
         var seamCarver = null;
         img.onload = function(){
@@ -77,7 +81,7 @@
             });
         }
         function drawImage(result){
-			console.log(result)
+            console.log(result)
             var newImage = ctx.createImageData(imageData.width, imageData.height);
             for (var i = 0; i < result.length; i++) {
                 newImage.data[i] = result[i];

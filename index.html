@@ -5,14 +5,17 @@
         <link rel="stylesheet" href="http://static.jquery.com/ui/css/demo-docs-theme/ui.theme.css" type="text/css" media="all" />
     </head>
     <style>
+        html {
+            background-color: #CCCCCC;
+        }
         
         body {
             font-family: Arial, Helvetica, sans-serif;
             font-size: 14px;
-            padding: 0;
+            padding: 1%;
             margin: auto;
             width: 90%;
-            background-color: WHITE;
+            background-color: #FFFFFF;
         }
         
         #resizer {
@@ -26,6 +29,7 @@
         
         #images {
             text-align: center;
+            margin: 0;
         }
         
         #images li {
@@ -45,16 +49,24 @@
             box-shadow: 0 0 10px GRAY;
         }
         
+        #canvas {
+            float: left;
+            display: inline;
+        }
+        
         #source {
             float: right;
+            cursor: move;
+        }
+        
+        #resizer {
+            position: absolute;
         }
     </style>
     <body>
-        <h1 style ="text-align:center">Seam Carving using Javascript</h1>
+        <h1 style ="text-align:center"><a href = "http://en.wikipedia.org/wiki/Seam_carving" target = "_blank">Seam Carving</a> using <a href = "http://en.wikipedia.org/wiki/Canvas_element" target = "_blank">Canvas</a> and <a href = "http://www.whatwg.org/specs/web-workers/current-work/" target = "_blank">Web Workers</a></h1>
+        <a href="http://nparashuram.com/projects/seamcarving"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://assets2.github.com/img/7afbc8b248c68eb468279e8c17986ad46549fb71?repo=&url=http%3A%2F%2Fs3.amazonaws.com%2Fgithub%2Fribbons%2Fforkme_right_darkblue_121621.png&path=" alt="Fork me on GitHub"></a>
         <ul id = "images">
-            <li>
-                <img src_defer = "images/0.jpg">
-            </li>
             <li>
                 <img src_defer = "images/1.jpg" title = "http://www.flickr.com/photos/mortimer/1654797776/">
             </li>
@@ -68,22 +80,34 @@
                 <img src_defer = "images/4.jpg" title = "http://www.flickr.com/photos/doegox/1347667703/">
             </li>
             <li>
+                <img src_defer = "images/0.jpg">
+            </li>
+            <li>
                 <img src_defer = "images/5.jpg" title = "http://www.flickr.com/photos/appaloosa/4443639205/">
             </li>
             <li>
                 <img src_defer = "images/6.jpg" title = "http://www.flickr.com/photos/ajanhelendam/2369238775/">
             </li>
         </ul>
+        <div style ="padding : 0.5em;">
+            Select an image from above to resize. Drag dashed border of the image on left to resize it. Drag image on right side over the resized image to compare. More information <a href = "http://www.nparashuram.com/projects/seamcarving">here</a>.
+        </div>
         <div style ="clear:both">
             <canvas id = "canvas">
             </canvas>
             <img id = "source"/>
-            <div id = "resizer" style ="overflow:hidden">
+            <div id = "resizer">
             </div>
         </div>
-        <marquee>
-            This UI element keeps moving. If this stops, your UI is frozen
+        <marquee style ="clear:both; padding : 0.5em;">
+            If this marquee stops, the UI thread is frozen
         </marquee>
+        <div style ="border-bottom:dotted BLACK 1px;">
+            Logs (<a href = "javascript:(function(){$('#log').empty()})();" style ="font-size : 0.8em">Clear</a>)
+        </div>
+        <div id = "log" style ="font-size:0.8em; height : 100px; overflow-y : scroll;">
+            Logs from Worker
+        </div>
     </body>
     <script src = "https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type = "text/javascript">
     </script>
@@ -91,11 +115,11 @@
     </script>
     <script type="text/javascript">
         $(document).ready(function(){
-            $("#images img").click(function(){
+            $("#images img").each(function(){
+                $(this).attr("src", $(this).attr("src_defer"));
+            }).click(function(){
                 $("#source").attr("src", $(this).attr("src"));
                 initCanvas();
-            }).each(function(){
-                $(this).attr("src", $(this).attr("src_defer"));
             });
             
             function initCanvas(){
@@ -112,11 +136,12 @@
                 var imageData = null;
                 img.src = $("#source").attr("src");
                 img.onload = function(){
+                    log("Image loaded and ready for seam carving");
                     canvas.height = img.height;
                     canvas.width = img.width;
                     ctx.drawImage(img, 0, 0);
                     $("#resizer").css({
-                        "top": $("#canvas").position().top,
+                        //"top": $("#canvas").position().top,
                         "left": $("#canvas").position().left,
                         "height": img.height,
                         "width": img.width
@@ -128,15 +153,16 @@
                         switch (e.data.action) {
                             case "done":
                                 newImage = ctx.createImageData(e.data.width, e.data.height);
+                                log("Reduced image available, copying it to canvas")
                                 for (var i = 0; i < e.data.data.length; i++) {
                                     newImage.data[i] = e.data.data[i];
                                 }
                                 ctx.putImageData(newImage, 0, 0);
+                                log("Reduced image placed on canvas");
                                 break;
                             default:
-                                console && console.log(e.data);
+                                log(e.data)
                                 break;
-                                
                         }
                     }, false);
                     $("#resizer").resizable({
@@ -161,7 +187,24 @@
                 }
             }
             
-            $("#images img:first-child").click();
+            function log(msg){
+                var time = new Date();
+                var t = time.toTimeString();
+                t = "<span style = 'color:GREEN'>" + t + "</span> " + msg;
+                $("#log").append($("<div>").html(t));
+            }
+            
+            $("#images img").first().click();
+            $("#source").draggable({
+                "start": function(){
+                    $(this).css("opacity", 0.5);
+                },
+                "stop": function(){
+                    $(this).css("opacity", 1);
+                },
+                "axis": "x",
+                "revert": true
+            });
         });
     </script>
 </html>

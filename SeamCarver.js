@@ -21,6 +21,7 @@ function(msg){
  * @param {Object} image
  */
 function SeamCarver(image){
+    log("Seam Carver initialized");
     this.image = image;
     this.newImage = [];
 }
@@ -66,6 +67,7 @@ SeamCarver.prototype.copyImage = function(){
 }
 
 SeamCarver.prototype.initHeatMap = function(){
+    log("Starting to calculate heatmap");
     var me = this;
     var b = function(x, y){
         if (x < 0 || y < 0 || x >= me.image.width || y >= me.image.height) {
@@ -93,7 +95,7 @@ SeamCarver.prototype.initHeatMap = function(){
 }
 
 SeamCarver.prototype.initSeams = function(){
-    log("Getting seams");
+    log("Starting to calculate seams");
     var yseam = [];
     this.heatMap || this.initHeatMap();
     
@@ -120,6 +122,7 @@ SeamCarver.prototype.initSeams = function(){
         for (var y = ylen - 1; y >= 0; y--) {
             var x1 = yseam[x][y + 1];
             var x0 = x1 - 1;
+            // Move along till the adjacent pixel is not a part of another seam
             while (x0 >= 0) {
                 if (!isNaN(this.heatMap[x0][y])) break;
                 x0--;
@@ -141,7 +144,7 @@ SeamCarver.prototype.initSeams = function(){
         }
     }
     
-    
+    log("Seams calculated");
     this.seams = yseam;
     return this;
 }
@@ -153,9 +156,9 @@ SeamCarver.prototype.getHeatMap = function(){
         for (var y = 0; y < this.image.height; y++) {
             var color = parseInt(this.heatMap[x][y] / this.maxHeat * 255);
             this.putPixel(x, y, {
-                "red": 212,
-                "blue": 212,
-                "green": 212,
+                "red": color,
+                "blue": color,
+                "green": color,
                 "alpha": 1
             });
         }
@@ -202,13 +205,13 @@ SeamCarver.prototype.resize = function(dim){
             }
         }
     }
-    log("Placing empty pixels in image");
+    log("Seams removed, placing empty pixels in reduced portion of image");
     for (var x = dim.width; x < image.width; x++) {
         for (var y = 0; y < image.height; y++) {
             this.putPixel(x, y, 0xABCDEF);
         }
     }
-    
+    log("Reduced image ready");
     return this.newImage;
 }
 
