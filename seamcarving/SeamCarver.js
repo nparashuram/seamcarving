@@ -3,9 +3,7 @@ self.addEventListener("message", function(e){
     var seamCarver = new SeamCarver(data.image).initSeams();
     
     var result = {
-        "width": data.image.width,
-        "height": data.image.height,
-        "data": seamCarver.resize(data.adjust),
+        image: seamCarver.resize(data.adjust),
         "action": "done"
     }
     self.postMessage(result);
@@ -124,13 +122,15 @@ SeamCarver.prototype.initSeams = function(){
             var x0 = x1 - 1;
             // Move along till the adjacent pixel is not a part of another seam
             while (x0 >= 0) {
-                if (!isNaN(this.heatMap[x0][y])) break;
+                if (!isNaN(this.heatMap[x0][y])) 
+                    break;
                 x0--;
             }
             
             var x2 = x1 + 1;
             while (x2 < this.image.width) {
-                if (!isNaN(this.heatMap[x2][y])) break;
+                if (!isNaN(this.heatMap[x2][y])) 
+                    break;
                 x2++;
             }
             
@@ -212,6 +212,10 @@ SeamCarver.prototype.resize = function(dim){
         }
     }
     log("Reduced image ready");
-    return this.newImage;
+    return {
+        "height": this.image.height,
+        "width": this.image.width,
+        "data": this.newImage
+    }
 }
 
