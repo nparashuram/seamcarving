@@ -153,12 +153,22 @@
                     worker.addEventListener("message", function(e){
                         switch (e.data.action) {
                             case "done":
-                                newImage = ctx.createImageData(e.data.image.width, e.data.image.height);
-                                log("Reduced image available, copying it to canvas")
-                                for (var i = 0; i < e.data.image.data.length; i++) {
-                                    newImage.data[i] = e.data.image.data[i];
+                                var start = new Date().getTime();
+                                log("Reduced image available, copying it to canvas");
+								var result = e.data.image;
+                                try {
+                                    ctx.putImageData(result, 0, 0);
+                                } 
+                                catch (e) {
+                                    log("Could not simply reassign the canvas, so copying the entire array");
+                                    var newImage = ctx.createImageData(result.width, result.height);
+                                    for (var i = 0; i < result.data.length; i++) {
+                                        newImage.data[i] = result.data[i];
+                                    }
+                                    ctx.putImageData(newImage, 0, 0);
                                 }
-                                ctx.putImageData(newImage, 0, 0);
+                                
+                                log("Array Copy time " + (new Date().getTime() - start))
                                 log("Reduced image placed on canvas");
                                 break;
                             default:
@@ -189,10 +199,10 @@
             }
             
             function log(msg){
-                var time = new Date();
-                var t = time.toTimeString();
-                t = "<span style = 'color:GREEN'>" + t + "</span> " + msg;
-                $("#log").append($("<div>").html(t));
+                if (typeof startTime === "undefined") {
+                    startTime = new Date().getTime();
+                }
+                $("#log").append($("<div>").html("<span style = 'color:GREEN'>" + (new Date().getTime() - startTime) + "</span> : " + msg));
             }
             
             $("#images img").first().click();
