@@ -1,0 +1,62 @@
+html {
+    background-color: #6d695c;
+    background-image:
+    repeating-linear-gradient(120deg, rgba(255,255,255,.1), rgba(255,255,255,.1) 1px, transparent 1px, transparent 60px),
+    repeating-linear-gradient(60deg, rgba(255,255,255,.1), rgba(255,255,255,.1) 1px, transparent 1px, transparent 60px),
+    linear-gradient(60deg, rgba(0,0,0,.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.1) 75%, rgba(0,0,0,.1)),
+    linear-gradient(120deg, rgba(0,0,0,.1) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.1) 75%, rgba(0,0,0,.1));
+    background-size: 70px 120px;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    padding: 1%;
+    margin: auto;
+    width: 80%;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 20px 0;
+
+}
+
+#resizer {
+    border: SOLID 2px RED;
+    border-right: DASHED 5px ORANGE;
+    text-align: left;
+    position: absolute;
+    padding: 0;
+    margin: 0;
+}
+
+#images {
+    text-align: center;
+    margin: 0;
+}
+
+#images li {
+    display: inline;
+    list-style: none;
+}
+
+#images img {
+    height: 100px;
+    cursor: pointer;
+}
+
+#images img:hover {
+    box-shadow: 0 0 10px GRAY;
+}
+
+#canvas {
+    float: left;
+    display: inline;
+}
+
+#source {
+    float: right;
+    cursor: move;
+}
+
+#resizer {
+    position: absolute;
+}

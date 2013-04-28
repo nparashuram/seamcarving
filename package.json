@@ -1,0 +1,29 @@
+{
+  "name": "seamcarving",
+  "version": "0.0.1",
+  "description": "This project shows seam carving in Javascript using Canvas and Web Workers.\r For more information, please visit http://www.nparashuram.com/projects/seamcarving",
+  "main": "SeamCarver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://axemclion@github.com/axemclion/seamcarving.git"
+  },
+  "keywords": [
+    "images",
+    "web",
+    "workers",
+    "seam",
+    "carving"
+  ],
+  "author": "Parashuram <code@r.nparashuram.com>",
+  "license": "BSD",
+  "readmeFilename": "README",
+  "gitHead": "7a52cb05aef6506eee03e5aabdcad9e988a43779",
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-watch": "~0.3.1",
+    "grunt-contrib-connect": "~0.3.0"
+  }
+}
